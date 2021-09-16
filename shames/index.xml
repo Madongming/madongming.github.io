@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Shames on Cody Site</title>
+    <link>https://www.madongming.com/shames/</link>
+    <description>Recent content in Shames on Cody Site</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>© {year}</copyright>
+    <lastBuildDate>Thu, 04 Feb 2021 22:52:40 +0800</lastBuildDate><atom:link href="https://www.madongming.com/shames/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>耻辱柱</title>
+      <link>https://www.madongming.com/shames/shames/</link>
+      <pubDate>Thu, 04 Feb 2021 22:52:40 +0800</pubDate>
+      
+      <guid>https://www.madongming.com/shames/shames/</guid>
+      <description>记录一些低级错误，耻辱事件 在公司release程序的前几小时，删掉了打包机器的环境。 时间 2008年某天
+过程 多次要求我清理系统空间。但因为不熟悉打包系统环境，一开始是拒绝的，多次要求后，我清理了。
+总结 不清楚，千万不要动，更别提删除
+泄漏重要密钥 时间 2018年某天
+过程 在发布出去的二进制程序中包含了敏感信息。
+总结 不要以为二进制真的是010101，反汇编可以看到很多信息。对于计算机要始终保持不信任。
+sql语句未退出 时间 2020年7月1日
+过程 执行大负载sql语句，在未执行完成时Ctrl+C退出客户端，但实际sql执行还在继续，执行了数小时。
+总结 对计算机保持不信任。之前类似的情况已经验证过，sql语句会退出，但此次没有。其中原因可能是各种，但是在人不能总是考虑全面的情况下，只能选择不信任计算机，反复验证。</description>
+    </item>
+    
+  </channel>
+</rss>

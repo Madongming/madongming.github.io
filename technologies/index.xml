@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Technologies on Cody Site</title>
+    <link>https://www.madongming.com/technologies/</link>
+    <description>Recent content in Technologies on Cody Site</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>© {year}</copyright>
+    <lastBuildDate>Mon, 24 May 2021 16:37:32 +0800</lastBuildDate><atom:link href="https://www.madongming.com/technologies/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Create a project from 0 to 1</title>
+      <link>https://www.madongming.com/technologies/createproject0-1/</link>
+      <pubDate>Mon, 24 May 2021 16:37:32 +0800</pubDate>
+      
+      <guid>https://www.madongming.com/technologies/createproject0-1/</guid>
+      <description>-先随便定一个小目标，基于IPFS的备份系统- &amp;ndash; 搭建三个节点的ipfs- &amp;ndash; 提供备份的api- &amp;ndash; 简单版本的客户端-
+确定两个产品方向
+ 养老 宠物  </description>
+    </item>
+    
+    <item>
+      <title>Ansi Common lisp 读书笔记 1</title>
+      <link>https://www.madongming.com/technologies/commonlisp-1/</link>
+      <pubDate>Tue, 09 Feb 2021 21:27:53 +0800</pubDate>
+      
+      <guid>https://www.madongming.com/technologies/commonlisp-1/</guid>
+      <description>第三章 构造 因为 lisp 的所有对象本质上都是 list，所以所有的构造归根结底都是list的操作，即cons car cdr
+等式  eql 对象是否相等（包括引用的地址），也可视为判断是否是一个符号 equal 对象值是否相等  指针 lisp 没有指针，只是引用。 lisp 会处理赋值的时候什么时候使用指针，什时候创建新的对象，主要考虑执行效率来决定。 因为 lisp 是有垃圾回收的，从诞生的时候就有。所以只要使用的值所占内存大于指针所占的内存，赋值的时候都是指针。之后交给垃圾回收去处理。 PS：我理解 setf 赋值都是指针，函数返回为创建新的对象</description>
+    </item>
+    
+    <item>
+      <title>Ansi Common lisp 读书笔记 0</title>
+      <link>https://www.madongming.com/technologies/commonlisp-0/</link>
+      <pubDate>Tue, 09 Feb 2021 16:24:34 +0800</pubDate>
+      
+      <guid>https://www.madongming.com/technologies/commonlisp-0/</guid>
+      <description>第一、二章 简单认识一下lisp 根据 SICP 课程的提出的，认识一门语言需要问的三个问题
+ 它的最基本单元是什么 它是怎么组合这些单元的 它抽象这些组合方法是什么 这本书我们都带着这些问题去看  表示方法 首先，lisp 和传统的编程语言有一点很不一样。它模糊了数据和方法，统一使用 “s 表达式” 来表示。 例如函数，不再是声明一个名字和参数列表，之后实现它这种结构，而是像写一个表达式
+(defun sum (n) (let ((s 0)) (dotimes (i n s) (incf s i))))  类似的，它的数据也是如此表示
+&#39;(1 2 3)  &amp;ldquo;&#39;&amp;rdquo; 单引号的作用是一个语法糖，方便的表示后面的是数据，不是需要求值的表达式
+lisp 还有一个符号的概念，这里没有介绍太清楚。只是先了解有这个东西，还有他也可以是被求值的，但是一般用的时候不需要求值，所以引用的时候也使用单引号来引用
+&#39;Symbol  结构 lisp 是一个循环自解释的系统 它会把自己语言的高级抽象，通过自己的语言来展开，之后求值。如果要求值的表达式还是比较高级的抽象，会又重新进行展开，之后再求值。这样一直循环到可以用最基础的实现来求值，得出最后结果的过程
+列表操作符  cons 链接 list 的第一个元素和后面的部分 car 取 list 的第一个元素 cdr 取 list 除了第一个元素后面的部分  谓词 一般的，在 lisp 做条件判断的错作符称作谓词，一般为了可读性，自定义的谓词使用“p”结尾，例如
+(listp &#39;(a b c))  这个表达式求是判断（a b c）是否是list。值的结果是真，用 “t” 表示 上面的结果会返回</description>
+    </item>
+    
+    <item>
+      <title>pullrequest 的事</title>
+      <link>https://www.madongming.com/technologies/pullrequest-thing/</link>
+      <pubDate>Thu, 04 Feb 2021 17:33:10 +0800</pubDate>
+      
+      <guid>https://www.madongming.com/technologies/pullrequest-thing/</guid>
+      <description>pullrequest，看上去很简单，一般就是一个分支合并到另一个分支，在研究了gitea的compare部分的代码后，觉得还是挺复杂的。
+约定 首先，明确 base 和 head，要建立一个pullrequest，就是将一个分支 merge 到 一个分支：
+base &amp;lt;- head
+明确了 base 和 head，下面会用 baseXXX 和 headXXX 表示 base 的相关元素或head 的相关元素。
+代码逻辑叙述 首先要获取compare的信息，进入ParseCompareInfo函数
+baseRepo 从 ctx 中获取，也就是 path 中的 owner/repo
+从路径的“*”中取出这些信息
+格式支持三种：
+ {:baseBranch}…{:headBranch} {:baseBranch}…{:headOwner}:{:headBranch} {:baseBranch}…{:headOwner}/{:headRepoName}:{:headBranch}  首先，一定是“…”分割的两部分，将其组合成列表infos，如果不是就报错。
+infoPath = ctx.Params(&amp;quot;*&amp;quot;) infos := strings.SplitN(infoPath, &amp;quot;...&amp;quot;, 2) if len(infos) != 2 { ... }  在ctx的Data中存在的数据将会用作模版替换，这里设置BaseName，是从前面获取的baseRepo中取得，baseBranch是从infos的第一个元素，也就是“…”前面的内容。也在ctx的Data中保存baseBranch。
+ctx.Data[&amp;quot;BaseName&amp;quot;] = baseRepo.OwnerName baseBranch := infos[0] ctx.Data[&amp;quot;BaseBranch&amp;quot;] = baseBranch  三个点分割的后半部是head的定义，如果这部分里没有“：”分割，那说明pullrequest的两个分支同属一个repo，headUser就是ctx中repo的owner，也就是baseOwner（目前看是，后面也可能变化），headBranch就是三个点后面的部分。如果有“：”分割（一定是一个冒号，可就是分为两部分）
+headInfos := strings.</description>
+    </item>
+    
+  </channel>
+</rss>
