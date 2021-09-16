@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <title>pullrequest 的事 | Cody Site</title>
+
+  <meta charset="UTF-8">
+  <meta name="language" content="en">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  
+  
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="pullrequest 的事" />
+  <meta name="twitter:description" content=""/>
+  <meta name="twitter:site" content="https://twitter.com/dongmingma" />
+  <meta name="twitter:creator" content="https://twitter.com/dongmingma" />
+  
+
+  <link rel="shortcut icon" type="image/png" href="/favicon.ico" />
+
+
+  
+  
+    
+ 
+  
+  
+  
+  
+  
+  
+    
+    <link type="text/css" rel="stylesheet" href="/css/post.min.86d1effd4c412b85ac13db53a90c473a0f256f789b821e131125c9aa25cb6a6d.css" integrity="sha256-htHv/UxBK4WsE9tTqQxHOg8lb3ibgh4TESXJqiXLam0="/>
+  
+    
+    <link type="text/css" rel="stylesheet" href="/css/custom.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css" integrity="sha256-47DEQpj8HBSa&#43;/TImW&#43;5JCeuQeRkm5NMpJWZG3hSuFU="/>
+  
+  
+   
+   
+    
+
+<script type="application/ld+json">
+  
+    { 
+      "@context": "http://schema.org", 
+      "@type": "WebSite", 
+      "url": "https:\/\/www.madongming.com\/technologies\/pullrequest-thing\/",
+      "name": "pullrequest 的事",
+      "author": {
+        "@type": "Person",
+        "name": ""
+      },
+      "description": ""
+    }
+  
+  </script>
+</head>
+
+<body>
+  <div class="burger__container">
+  <div class="burger" aria-controls="navigation" aria-label="Menu">
+    <div class="burger__meat burger__meat--1"></div>
+    <div class="burger__meat burger__meat--2"></div>
+    <div class="burger__meat burger__meat--3"></div>
+  </div>
+</div>
+ 
+
+  <nav class="nav" id="navigation">
+  <ul class="nav__list">
+    
+    
+      <li>
+        <a  href="/about">关于</a>
+      </li>
+    
+      <li>
+        <a  class="active"
+         href="/technologies">技术</a>
+      </li>
+    
+      <li>
+        <a  href="/lifes">生活</a>
+      </li>
+    
+      <li>
+        <a  href="/shames">耻辱柱</a>
+      </li>
+    
+      <li>
+        <a  href="/">首页</a>
+      </li>
+    
+  </ul>
+</nav>
+
+
+  <main>
+    
+    
+
+    <div class="flex-wrapper">
+      <div class="post__container">
+        <div class="post">
+          <header class="post__header">
+            <h1 id="post__title">pullrequest 的事</h1>
+            <time datetime="2021-02-04 17:33:10 &#43;0800 CST" class="post__date">Feb 4 2021</time> 
+          </header>
+          <article class="post__content">
+              
+<p>pullrequest，看上去很简单，一般就是一个分支合并到另一个分支，在研究了gitea的compare部分的代码后，觉得还是挺复杂的。</p>
+<h2 id="约定">约定<a class="anchor" href="#约定">#</a></h2>
+<p>首先，明确 base 和 head，要建立一个pullrequest，就是将一个分支 merge 到 一个分支：</p>
+<p>base &lt;- head</p>
+<p>明确了 base 和 head，下面会用 baseXXX 和 headXXX 表示 base 的相关元素或head 的相关元素。</p>
+<h2 id="代码逻辑叙述">代码逻辑叙述<a class="anchor" href="#代码逻辑叙述">#</a></h2>
+<p>首先要获取compare的信息，进入ParseCompareInfo函数</p>
+<p>baseRepo 从 ctx 中获取，也就是 path 中的 owner/repo</p>
+<p>从路径的“*”中取出这些信息</p>
+<p>格式支持三种：</p>
+<ul>
+<li>{:baseBranch}…{:headBranch}</li>
+<li>{:baseBranch}…{:headOwner}:{:headBranch}</li>
+<li>{:baseBranch}…{:headOwner}/{:headRepoName}:{:headBranch}</li>
+</ul>
+<p>首先，一定是“…”分割的两部分，将其组合成列表infos，如果不是就报错。</p>
+<pre><code class="language-golang">        infoPath = ctx.Params(&quot;*&quot;)
+        infos := strings.SplitN(infoPath, &quot;...&quot;, 2)
+        if len(infos) != 2 {
+...
+}
+</code></pre>
+<p>在ctx的Data中存在的数据将会用作模版替换，这里设置BaseName，是从前面获取的baseRepo中取得，baseBranch是从infos的第一个元素，也就是“…”前面的内容。也在ctx的Data中保存baseBranch。</p>
+<pre><code class="language-golang">        ctx.Data[&quot;BaseName&quot;] = baseRepo.OwnerName
+        baseBranch := infos[0]
+        ctx.Data[&quot;BaseBranch&quot;] = baseBranch
+</code></pre>
+<p>三个点分割的后半部是head的定义，如果这部分里没有“：”分割，那说明pullrequest的两个分支同属一个repo，headUser就是ctx中repo的owner，也就是baseOwner（目前看是，后面也可能变化），headBranch就是三个点后面的部分。如果有“：”分割（一定是一个冒号，可就是分为两部分）</p>
+<pre><code class="language-golang">        headInfos := strings.Split(infos[1], &quot;:&quot;)
+        if len(headInfos) == 1 {
+                isSameRepo = true
+                headUser = ctx.Repo.Owner
+                headBranch = headInfos[0]
+
+        } else if len(headInfos) == 2 {
+</code></pre>
+<p>接下来要看这两部分中的前一个中是否有“/”分割。如果没有“/”分割为两部分，则冒号前的这部分就是headUser，冒号的后一部分就是headBranch。如果这个headUser和baseRepo的Owner相同，则视为headRepo和baseRepo相同</p>
+<pre><code class="language-golang">                headInfosSplit := strings.Split(headInfos[0], &quot;/&quot;)
+                if len(headInfosSplit) == 1 {
+                        headUser, err = models.GetUserByName(headInfos[0])
+                        if err != nil {
+                                if models.IsErrUserNotExist(err) {
+                                        ctx.NotFound(&quot;GetUserByName&quot;, nil)
+                                } else {
+                                        ctx.ServerError(&quot;GetUserByName&quot;, err)
+                                }
+                                return nil, nil, nil, nil, &quot;&quot;, &quot;&quot;
+                        }
+                        headBranch = headInfos[1]
+                        isSameRepo = headUser.ID == ctx.Repo.Owner.ID
+                        if isSameRepo {
+                                headRepo = baseRepo
+                        }
+                }
+</code></pre>
+<p>但如果分号的前半部分有“/”分割，则冒号的前半部分是完整的headRepo，即owner/repo的方式。后面的代码也就一目了然了，获取到headRepo对象headOwner对象，同样也会判断和baseRepo是不是同一个。</p>
+<pre><code class="language-golang">else {
+                        headRepo, err = models.GetRepositoryByOwnerAndName(headInfosSplit[0], headInfosSplit[1])
+                        if err != nil {
+...
+</code></pre>
+<p>这段最后，保存在ctx的Data中</p>
+<p>接下来，处理来自参数的baseBranch。因为参数比较灵活，接收各种ref，可能是分支名，可能是tag，可能是commitid，也可能是短的commitid，这里需要标记出是哪种，但是如果是短commitid则需要转成正常的commitid并标记。</p>
+<p>现在我们已经有了 base 仓库，但是当前的 baseRepo headRepo 以及 baseBranch headBranch 不是创建的pullrequest最终想要的。 例如可能你提交的pullrequest是你fork的repo，而你实际是想merge到上游的repo的分支上，这样你的baseRepo就不是你创建是传递的repo。</p>
+<p>所以提供了一些确定base和head repo/branch的方法</p>
+<p>你提交的baseRepo可能是其他repo的fork，将这个repo命名为rootRepo
+如果提交者不是baseRepo的owner，baseRepo的forks中有一个是current user，将这个库命名为OwnForkRepo
+从前面的代码我们已经知道，如果没在路径中指定，这个headRepo和baseRepo相同。如果只指定了headUser，且这个user和base的owner相同，headRepo和baseRepo相同。如果指定了headRepo，那就是headRepo。所以除此之外，headRepo是为空的。如果headRepo为空的时候，且rootRepo不为空，且headUser = rootRepo的owner，将headRepo设置为rootRepo。
+当前一个不满足的时候（headRepo还是为空，是因为rootRepo的一些属性不满足），再看ownForkRepo，如果ownForkRepo不为空，且headUser = ownForkRepo的owner，将headRepo设置为ownForkRepo
+如果还是不满足，在repo列表中查找owner是headuser的，且从baseRepo fork出来的repo，将它设为headRepo。
+如果还不满足，在repo列表中查找owner是headuser的，且这个repo和baseRepo从同一个repo fork出来的。即这个repo和baseRepo是同一个 父节点。将它设置为headRepo
+如果还未满足，放弃。
+总结一个图</p>
+<p><img src="/images/pullrequest-headRepo.png" alt=""></p>
+<p>headRepo的最后，如果和baseRepo相同，将base的赋值给他，否则打开它。</p>
+<p>之后检查headUser对baseRepo的权限。</p>
+<p>如果rootRepo既不是base也不是headrepo，说明base和head repo 都是从它fork出来的。将rootRepo的branch全部取出来，同时检查权限。有权限的话，将branches放在ctx。Data中用户页面templates的渲染。</p>
+<p>对于ownForkRepo同rootRepo一样操作</p>
+<p>和baseBranch一样，也将headBranch同样处理</p>
+<p>如果baseBranch和headBranch都为 branchname，那么将此次compare视为merge</p>
+<p>用refs/heads|tags/拼接branch或tag</p>
+<p>接下来会以headGitRepo为操作对象进入GetCompareInfo。</p>
+<p>如果headRepo的path和basepath不一样，也就是不是同一个repo（可能是fork等关系），会添加一个以时间戳为名的remote仓库，仓库的地址是headRepo的path</p>
+<pre><code class="language-golang">        if repo.Path != basePath {
+                // Add a temporary remote
+                tmpRemote = strconv.FormatInt(time.Now().UnixNano(), 10)
+		if err = repo.AddRemote(tmpRemote, basePath, false); err != nil {
+                        return nil, fmt.Errorf(&quot;AddRemote: %v&quot;, err)
+	        }
+                defer func() {
+                        if err := repo.RemoveRemote(tmpRemote); err != nil {
+                                logger.Error(&quot;GetPullRequestInfo: RemoveRemote: %v&quot;, err)
+                        }
+		}()
+        }
+</code></pre>
+<p>接下来介于headRepo寻找baseRepo。使用它的GetMergeBase方法</p>
+<p>进来之后，首先判断有没有设置tmpRemote也就是base和head repo是否是一个。如果没有设置，也就是空，就将其设为origin，也就是一个仓库。</p>
+<pre><code class="language-golang">        if tmpRemote == &quot;&quot; {
+                tmpRemote = &quot;origin&quot;
+        }
+</code></pre>
+<p>再之后，如果tmpRemote不是origin，也就是进入此函数时，tmpRemote不是空，即不是同一个repo。将base设置为remote的名字，并fetch取回。</p>
+<pre><code>    if tmpRemote != &quot;origin&quot; {
+            tmpBaseName := &quot;refs/remotes/&quot; + tmpRemote + &quot;/tmp_&quot; + base
+            // Fetch commit into a temporary branch in order to be able to handle commits and tags
+            _, err := NewCommand(&quot;fetch&quot;, tmpRemote, base+&quot;:&quot;+tmpBaseName).RunInDir(repo.Path)
+            if err == nil {
+                    base = tmpBaseName
+            }
+    }
+</code></pre>
+<p>用 git merge-base 命令寻找base和head 尽可能好的共同祖先</p>
+<pre><code class="language-shell">stdout, err := NewCommand(&quot;merge-base&quot;, &quot;--&quot;, base, head).RunInDir(repo.Path)
+</code></pre>
+<p>最后将输出和找到的baseBranch返回</p>
+<p>回到上一层，如果返回没有error，说明找到共同的祖先。用这个祖先和headBranch查询commit 的 log</p>
+<pre><code>        logs, err := NewCommand(&quot;log&quot;, compareInfo.MergeBase+&quot;...&quot;+headBranch, prettyLogFormat).RunInDirBytes(repo.Path)
+</code></pre>
+<p>如果有error说明没找到，将差异的commit log 设为空 链表，将merge的base设为：1，可能是baseBranch 2，可能是临时仓库，也就是远程的一个库，可能是设置base的父repo。这个在GetMergeBase决定的</p>
+<p>最后，用命令git diff –name-only 比较找到的base 和 head 的 commits 记录</p>
+<pre><code>        stdout, err := NewCommand(&quot;diff&quot;, &quot;--name-only&quot;, remoteBranch+&quot;...&quot;+headBranch).RunInDir(repo.Path)
+</code></pre>
+<p>退出函数，到了最上层，进入PrepareCompareDiff函数</p>
+<p>现将branch或tag转成commitid。如果headCommitID 和 要合并的 baseCommitID，也就是mergeBase相同，说明没有diff。</p>
+<p>之后开始diff 两个commit（不知到为什么两个相同的情况下还要进入比较函数？）从传入的参数可以看出，diff的时候是基于headRepo去操作了，如果baseRepo是其他的repo，会以remote的方式存在。</p>
+<p>进入比较深层，真正执行比较的函数GetDiffRangeWithWhitespaceBehavior中，这个函数同时也会被查看commit的change接口用到。所以会判断如果baseCommitID（这里写做beforeCommitID）是否为空，用parent commit id当做baseCommit，如果也没有，则执行的时候用git show命令查看变更。接下来是处理输出的内容，将其转序列化 。</p>
+<p>剩下的内容都是添加一些信息到ctx.Data中用户渲染或者添加一些合法性验证之类的东西。</p>
+<p>至此，gitea 的 compare 页面分析就完成了。总结来说，当你提交了repo（path中的owner/repo），headUser（也可能没有），base和head branch（或commitID，tag，short commitID）的时候。gitea会根据权限，fork和被fork的repo中查找合适的repo。寻找共同的父commit，多数情况是当时从basebranch建立headbranch时候的点。diff的时候就是和这个点去diff，如果以后要merge，也会基于这个点去merge。如果不存在，就用提交的basebranch。</p>
+
+
+              
+          </article>
+          
+
+ <div class="pagination">
+  
+
+  
+    <a class="pagination__item" href="https://www.madongming.com/technologies/commonlisp-0/">
+      <span class="pagination__label">Next Post</span>
+      <span class="pagination__title" >Ansi Common lisp 读书笔记 0</span>
+    </a>
+  
+</div>
+
+          
+          <footer class="post__footer">
+            
+
+
+<div class="social-icons">
+  
+     
+    
+      <a
+        class="social-icons__link"
+        title="Twitter"
+        href="https://twitter.com/dongmingma"
+        target="_blank"
+        rel="me noopener"
+      >
+        <div class="social-icons__icon" style="background-image: url('https://www.madongming.com/svg/twitter.svg')"></div>
+      </a>
+    
+  
+     
+    
+      <a
+        class="social-icons__link"
+        title="GitHub"
+        href="https://github.com/madongming"
+        target="_blank"
+        rel="me noopener"
+      >
+        <div class="social-icons__icon" style="background-image: url('https://www.madongming.com/svg/github.svg')"></div>
+      </a>
+    
+  
+     
+    
+      <a
+        class="social-icons__link"
+        title="Email"
+        href="mailto:elsove812@gmail.com"
+        target="_blank"
+        rel="me noopener"
+      >
+        <div class="social-icons__icon" style="background-image: url('https://www.madongming.com/svg/email.svg')"></div>
+      </a>
+    
+     
+</div>
+
+            <p>© 2021</p>
+          </footer>
+          </div>
+      </div>
+      
+    </div>
+    
+
+  </main>
+
+   
+
+  
+  <script src="/js/index.min.575dda8d49ee02639942c63564273e6da972ab531dda26a08800bdcb477cbd7f.js" integrity="sha256-V13ajUnuAmOZQsY1ZCc&#43;balyq1Md2iagiAC9y0d8vX8=" crossorigin="anonymous"></script>
+  
+  
+  <script src="https://unpkg.com/prismjs@1.20.0/components/prism-core.min.js"></script>
+
+  
+  <script src="https://unpkg.com/prismjs@1.20.0/plugins/autoloader/prism-autoloader.min.js"
+    data-autoloader-path="https://unpkg.com/prismjs@1.20.0/components/"></script>
+
+  
+
+
+</body>
+
+</html>

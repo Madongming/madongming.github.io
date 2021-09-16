@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <title>Ansi Common lisp 读书笔记 0 | Cody Site</title>
+
+  <meta charset="UTF-8">
+  <meta name="language" content="en">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  
+  
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Ansi Common lisp 读书笔记 0" />
+  <meta name="twitter:description" content=""/>
+  <meta name="twitter:site" content="https://twitter.com/dongmingma" />
+  <meta name="twitter:creator" content="https://twitter.com/dongmingma" />
+  
+
+  <link rel="shortcut icon" type="image/png" href="/favicon.ico" />
+
+
+  
+  
+    
+ 
+  
+  
+  
+  
+  
+  
+    
+    <link type="text/css" rel="stylesheet" href="/css/post.min.86d1effd4c412b85ac13db53a90c473a0f256f789b821e131125c9aa25cb6a6d.css" integrity="sha256-htHv/UxBK4WsE9tTqQxHOg8lb3ibgh4TESXJqiXLam0="/>
+  
+    
+    <link type="text/css" rel="stylesheet" href="/css/custom.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css" integrity="sha256-47DEQpj8HBSa&#43;/TImW&#43;5JCeuQeRkm5NMpJWZG3hSuFU="/>
+  
+  
+   
+   
+    
+
+<script type="application/ld+json">
+  
+    { 
+      "@context": "http://schema.org", 
+      "@type": "WebSite", 
+      "url": "https:\/\/www.madongming.com\/technologies\/commonlisp-0\/",
+      "name": "Ansi Common lisp 读书笔记 0",
+      "author": {
+        "@type": "Person",
+        "name": ""
+      },
+      "description": ""
+    }
+  
+  </script>
+</head>
+
+<body>
+  <div class="burger__container">
+  <div class="burger" aria-controls="navigation" aria-label="Menu">
+    <div class="burger__meat burger__meat--1"></div>
+    <div class="burger__meat burger__meat--2"></div>
+    <div class="burger__meat burger__meat--3"></div>
+  </div>
+</div>
+ 
+
+  <nav class="nav" id="navigation">
+  <ul class="nav__list">
+    
+    
+      <li>
+        <a  href="/about">关于</a>
+      </li>
+    
+      <li>
+        <a  class="active"
+         href="/technologies">技术</a>
+      </li>
+    
+      <li>
+        <a  href="/lifes">生活</a>
+      </li>
+    
+      <li>
+        <a  href="/shames">耻辱柱</a>
+      </li>
+    
+      <li>
+        <a  href="/">首页</a>
+      </li>
+    
+  </ul>
+</nav>
+
+
+  <main>
+    
+    
+
+    <div class="flex-wrapper">
+      <div class="post__container">
+        <div class="post">
+          <header class="post__header">
+            <h1 id="post__title">Ansi Common lisp 读书笔记 0</h1>
+            <time datetime="2021-02-09 16:24:34 &#43;0800 CST" class="post__date">Feb 9 2021</time> 
+          </header>
+          <article class="post__content">
+              
+<h1 id="第一二章">第一、二章</h1>
+<h2 id="简单认识一下lisp">简单认识一下lisp<a class="anchor" href="#简单认识一下lisp">#</a></h2>
+<p>根据 SICP 课程的提出的，认识一门语言需要问的三个问题</p>
+<ul>
+<li>它的最基本单元是什么</li>
+<li>它是怎么组合这些单元的</li>
+<li>它抽象这些组合方法是什么
+这本书我们都带着这些问题去看</li>
+</ul>
+<h2 id="表示方法">表示方法<a class="anchor" href="#表示方法">#</a></h2>
+<p>首先，lisp 和传统的编程语言有一点很不一样。它模糊了数据和方法，统一使用 “s 表达式” 来表示。
+例如函数，不再是声明一个名字和参数列表，之后实现它这种结构，而是像写一个表达式</p>
+<pre><code class="language-common">(defun sum (n)
+  (let ((s 0))
+    (dotimes (i n s)
+      (incf s i))))
+</code></pre>
+<p>类似的，它的数据也是如此表示</p>
+<pre><code class="language-common">'(1 2 3)
+</code></pre>
+<p>&ldquo;'&rdquo; 单引号的作用是一个语法糖，方便的表示后面的是数据，不是需要求值的表达式</p>
+<p>lisp 还有一个符号的概念，这里没有介绍太清楚。只是先了解有这个东西，还有他也可以是被求值的，但是一般用的时候不需要求值，所以引用的时候也使用单引号来引用</p>
+<pre><code class="language-common">'Symbol
+</code></pre>
+<h2 id="结构">结构<a class="anchor" href="#结构">#</a></h2>
+<p>lisp 是一个循环自解释的系统
+它会把自己语言的高级抽象，通过自己的语言来展开，之后求值。如果要求值的表达式还是比较高级的抽象，会又重新进行展开，之后再求值。这样一直循环到可以用最基础的实现来求值，得出最后结果的过程</p>
+<h2 id="列表操作符">列表操作符<a class="anchor" href="#列表操作符">#</a></h2>
+<ul>
+<li>cons
+链接 list 的第一个元素和后面的部分</li>
+<li>car
+取 list 的第一个元素</li>
+<li>cdr
+取 list 除了第一个元素后面的部分</li>
+</ul>
+<h2 id="谓词">谓词<a class="anchor" href="#谓词">#</a></h2>
+<p>一般的，在 lisp 做条件判断的错作符称作谓词，一般为了可读性，自定义的谓词使用“p”结尾，例如</p>
+<pre><code class="language-common">(listp '(a b c))
+</code></pre>
+<p>这个表达式求是判断（a b c）是否是list。值的结果是真，用 “t” 表示
+上面的结果会返回</p>
+<pre><code class="language-common">T
+</code></pre>
+<h3 id="关于-not-和-null">关于 not 和 null<a class="anchor" href="#关于-not-和-null">#</a></h3>
+<p>这里书里只介绍做相同的事，但是没有具体的解释。我们以后在看</p>
+<h2 id="函数">函数<a class="anchor" href="#函数">#</a></h2>
+<p>函数的定义，我们使用 defun 操作符</p>
+<h3 id="关于递归">关于递归<a class="anchor" href="#关于递归">#</a></h3>
+<p>这里只是说了lisp可以做递归，并举了些例子，并没有近一步说明。</p>
+<p>先简单说一下，基本的递归是每次的执行的环境保存在栈中，之后到最内层的时候逐步的回归出栈。
+递归在 lisp 的编译器中，会整体判断一个操作前后是否对某个值做入栈操作，来做尾递归的优化。</p>
+<h2 id="打印函数">打印函数<a class="anchor" href="#打印函数">#</a></h2>
+<p>common lisp 使用format函数打印</p>
+<p>占位符是 ~A，对应最后面参数列表的每个参数
+~% 表示换行</p>
+<h2 id="读入函数">读入函数<a class="anchor" href="#读入函数">#</a></h2>
+<p>书中说 read 是一个解释器。</p>
+<h3 id="解释器">解释器<a class="anchor" href="#解释器">#</a></h3>
+<p>解释器是对应的是求值器，他俩组合就是是前面说的循环求值的过程，lisp 的本质。
+书里这里没有更多的解释，以后再看。</p>
+<h2 id="变量">变量<a class="anchor" href="#变量">#</a></h2>
+<p>变量分为局部变量和全局变量</p>
+<p>在sicp中，会叫做自由变量和限制变量
+这个说法个人觉得一开始比较难理解，但是是说到本质的。
+自由变量是可以替换的，替换前后程序的意义没有变换。限制变量是不可以的，如果换了，程序的意义就变了
+如：</p>
+<pre><code class="language-common">(setq c 1)
+(setq d 2)
+(defun f (x y)
+  (+ x y c))
+</code></pre>
+<p>如果将所有的x替换成m，y替换成n，意义完全没有变换
+而要是把c换成d，程序的意义就变了</p>
+<h2 id="赋值">赋值<a class="anchor" href="#赋值">#</a></h2>
+<p>对于复制，在函数试编程里，复制是破坏无状态的开始，让事情变得更的复杂。但是复制也解决一些问题必要的工具。
+在其他 lisp 实现中（scheme）有复值的操作会以感叹号结尾来提示此操作会引入状态改变。</p>
+<p>common lisp 中使用setf 操作符来负值</p>
+<h2 id="迭代">迭代<a class="anchor" href="#迭代">#</a></h2>
+<p>在计算机更接近机器语言的层面，循环是跳转。在其他语言中是迭代的关键字来表示，lisp中是用递归，只是表现形式的不同
+common lisp 中有定义的宏来实现迭代</p>
+<h2 id="函数作为对象">函数作为对象<a class="anchor" href="#函数作为对象">#</a></h2>
+<p>其他对象的引用使用quote &ldquo;'&quot;，函数的引用使用sharp-quote &ldquo;#'&quot;。</p>
+<h3 id="引用">引用<a class="anchor" href="#引用">#</a></h3>
+<p>前面提到过两次引用了，本质都是防止引用的对象被求值</p>
+<h3 id="apply">apply<a class="anchor" href="#apply">#</a></h3>
+<p>apply 书中是说了它的作用是把函数何其参数传给它，等价于执行函数及参数</p>
+<h3 id="funcall">funcall<a class="anchor" href="#funcall">#</a></h3>
+<p>类似于 apply，都是接受函数引用和不定个数的参数，效果也相同，只是最后一个参数funcall 可以不是 list，apply 最后一个参数必须是 list</p>
+<h3 id="lambda">lambda<a class="anchor" href="#lambda">#</a></h3>
+<p>在 lisp 中，一切皆可 lambda，例如 lambda 可以是赋值</p>
+<pre><code class="language-common">((lambda (x y)
+  do some thing
+  ) 1 2)
+</code></pre>
+<p>相当于</p>
+<pre><code>(let ((x 1)
+      (y 2))
+      do some thing
+      )
+</code></pre>
+<p>他们的效果是一样的</p>
+<h2 id="类型">类型<a class="anchor" href="#类型">#</a></h2>
+<p>在 lisp 中，变量没有类型，但是为了使用类型，可以显示的标注一个变量的类型，说中说后面会讨论。在 sicp 中，解决一个横向隔离问题时引入了“类型”，只是用cons 将一个符号和变量cons起来，在去这个变量的时候使用cdr，取变量类型的时候使用car</p>
+<p>书中说lisp中数值才有类型，详细的在后面会讨论</p>
+
+
+              
+          </article>
+          
+
+ <div class="pagination">
+  
+    <a class="pagination__item" href="https://www.madongming.com/technologies/pullrequest-thing/">
+        <span class="pagination__label">Previous Post</span>
+        <span class="pagination__title">pullrequest 的事</span>
+    </a>
+  
+
+  
+    <a class="pagination__item" href="https://www.madongming.com/technologies/commonlisp-1/">
+      <span class="pagination__label">Next Post</span>
+      <span class="pagination__title" >Ansi Common lisp 读书笔记 1</span>
+    </a>
+  
+</div>
+
+          
+          <footer class="post__footer">
+            
+
+
+<div class="social-icons">
+  
+     
+    
+      <a
+        class="social-icons__link"
+        title="Twitter"
+        href="https://twitter.com/dongmingma"
+        target="_blank"
+        rel="me noopener"
+      >
+        <div class="social-icons__icon" style="background-image: url('https://www.madongming.com/svg/twitter.svg')"></div>
+      </a>
+    
+  
+     
+    
+      <a
+        class="social-icons__link"
+        title="GitHub"
+        href="https://github.com/madongming"
+        target="_blank"
+        rel="me noopener"
+      >
+        <div class="social-icons__icon" style="background-image: url('https://www.madongming.com/svg/github.svg')"></div>
+      </a>
+    
+  
+     
+    
+      <a
+        class="social-icons__link"
+        title="Email"
+        href="mailto:elsove812@gmail.com"
+        target="_blank"
+        rel="me noopener"
+      >
+        <div class="social-icons__icon" style="background-image: url('https://www.madongming.com/svg/email.svg')"></div>
+      </a>
+    
+     
+</div>
+
+            <p>© 2021</p>
+          </footer>
+          </div>
+      </div>
+      
+    </div>
+    
+
+  </main>
+
+   
+
+  
+  <script src="/js/index.min.575dda8d49ee02639942c63564273e6da972ab531dda26a08800bdcb477cbd7f.js" integrity="sha256-V13ajUnuAmOZQsY1ZCc&#43;balyq1Md2iagiAC9y0d8vX8=" crossorigin="anonymous"></script>
+  
+  
+  <script src="https://unpkg.com/prismjs@1.20.0/components/prism-core.min.js"></script>
+
+  
+  <script src="https://unpkg.com/prismjs@1.20.0/plugins/autoloader/prism-autoloader.min.js"
+    data-autoloader-path="https://unpkg.com/prismjs@1.20.0/components/"></script>
+
+  
+
+
+</body>
+
+</html>
